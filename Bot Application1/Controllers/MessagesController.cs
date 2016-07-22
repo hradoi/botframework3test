@@ -19,23 +19,21 @@ namespace Bot_Application1
         /// </summary>
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
-            if (activity.Type == ActivityTypes.Message)
-            {
-                ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
-                // calculate something for us to return
-                int length = (activity.Text ?? string.Empty).Length;
+            var incomingMessage = activity;
+            var connector = new ConnectorClient(new Uri(incomingMessage.ServiceUrl));
 
-                // return our reply to the user
-                Activity reply = activity.CreateReply($"You sent {activity.Text} which was {length} characters");
-                await connector.Conversations.ReplyToActivityAsync(reply);
-            }
-            else
-            {
-                HandleSystemMessage(activity);
-            }
+            IMessageActivity newMessage = Activity.CreateMessageActivity();
+            newMessage.Type = ActivityTypes.Message;
+            newMessage.From = activity.Recipient;
+            newMessage.Recipient = activity.From;
+            newMessage.Text = "Yo yo yo!";
+            
+            await connector.Conversations.ReplyToActivityAsync((Activity)newMessage);
+            
             var response = Request.CreateResponse(HttpStatusCode.OK);
             return response;
         }
+       
 
         private Activity HandleSystemMessage(Activity message)
         {
